@@ -20,15 +20,16 @@ class Bank:
         self.not_solved = True
         self.letters_already_guessed = []
         self.api_response_status = False
+        self.response = None
 
     def pick_topic(self) -> None:
         self.current_topic = choice(self.topic_names)
 
     def get_word(self) -> None:
         try:
-            response = requests.get(f"{self.api}", headers={'X-Api-Key': f"{self.api_key}"}, params={type: 'noun'})
-            if response.status_code == 200:
-                word = json.loads(response.text)
+            self.response = requests.get(f"{self.api}", headers={'X-Api-Key': f"{self.api_key}"}, params={type: 'noun'})
+            if self.response.status_code == 200:
+                word = json.loads(self.response.text)
                 self.api_response_status = True
                 self.current_word = word['word'].lower()
         except requests.exceptions.ConnectionError:
@@ -37,7 +38,6 @@ class Bank:
     def pick_word(self) -> None:
         self.current_word = choice(self.topics[self.current_topic])
 
-    # this method is to access the current_word_display easier
     def display_maker(self) -> None:
         for i in range(len(self.current_word)):
             self.current_word_display.append('_')
@@ -53,7 +53,7 @@ class Player:
         self.guess_validation_incomplete = True
 
     def guess(self, guess_input: str) -> None:
-        self.answer = guess_input
+        self.answer = guess_input.lower()
 
 
 class Processes:
@@ -63,7 +63,7 @@ class Processes:
     @staticmethod
     def validate_user_input(player: Player):
         expression = re.match('(?i)[a-z]', player.answer)
-        player.answer = player.answer.lower()
+        player.answer = player.answer
         if expression is None or len(player.answer) > 1:
             return None
         else:
@@ -89,10 +89,7 @@ class Processes:
             return "True"
 
 
-class Main:
-    def __init__(self):
-        pass
-
+if __name__ == "__main__":
     while True:
         word_bank = Bank()
         player1 = Player()
@@ -135,7 +132,3 @@ class Main:
         print('\n')
         if replay.upper() == 'X':
             break
-
-
-Play = Main()
-del Play
