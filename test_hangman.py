@@ -6,28 +6,14 @@ class TestBank(unittest.TestCase):
     def setUp(self) -> None:
         self.word_bank = hangman.Bank()
 
-    def test_pick_topic(self):
-        self.word_bank.pick_topic()
-        self.assertIn(self.word_bank.current_topic, self.word_bank.topics)
-
     def test_get_word(self):
         self.word_bank.get_word()
         if self.word_bank.response:
             if self.word_bank.response.status_code == 200:
-                self.assertIs(self.word_bank.api_response_status, True)
                 self.assertIsInstance(self.word_bank.current_word, str)
-            else:
-                self.assertIs(self.word_bank.api_response_status, False)
         else:
-            self.assertIs(self.word_bank.api_response_status, False)
-
-    def test_pick_word(self):
-        self.word_bank.pick_topic()
-        self.word_bank.pick_word()
-        self.assertIn(self.word_bank.current_word, self.word_bank.topics[self.word_bank.current_topic])
-
-    def test_display_maker(self):
-        self.word_bank.display_maker()
+            self.assertIn(self.word_bank.current_word, self.word_bank.topics[self.word_bank.current_topic])
+            self.assertIn(self.word_bank.current_topic, self.word_bank.topics)
         self.assertEqual(len(self.word_bank.current_word), len(self.word_bank.current_word_display))
         self.assertEqual((len(self.word_bank.current_word) * "_"), "".join(self.word_bank.current_word_display))
 
@@ -38,10 +24,6 @@ class TestBank(unittest.TestCase):
         self.word_bank.current_word_display = ["a", "b", "c"]
         self.word_bank.check_solve()
         self.assertIs(self.word_bank.not_solved, False)
-
-
-class TestPlayer(unittest.TestCase):
-    pass
 
 
 class TestProcess(unittest.TestCase):
@@ -72,14 +54,14 @@ class TestProcess(unittest.TestCase):
 
     def test_check_answer_update_lives(self):
         self.player1.answer = "a"
-        self.assertEqual(self.game.check_answer_update_lives(self.word_bank, self.player1), "repeated")
+        self.assertEqual(self.game.check_answer_update_lives(self.word_bank, self.player1), '\nLetter already guessed.')
         self.assertEqual(self.player1.lives, 5)
         self.player1.answer = "k"
-        self.assertEqual(self.game.check_answer_update_lives(self.word_bank, self.player1), "False")
+        self.assertEqual(self.game.check_answer_update_lives(self.word_bank, self.player1), '\nNope!')
         self.assertEqual(self.player1.lives, 4)
         self.assertEqual(self.word_bank.letters_already_guessed, ["a", "b", "c", "k"])
         self.player1.answer = "o"
-        self.assertEqual(self.game.check_answer_update_lives(self.word_bank, self.player1), "True")
+        self.assertEqual(self.game.check_answer_update_lives(self.word_bank, self.player1), '\nNice!')
         self.assertEqual(self.player1.lives, 4)
         self.assertEqual(self.word_bank.current_word_display, ["_", "o", "_"])
         self.assertEqual(self.word_bank.letters_guessed_counter, 4)

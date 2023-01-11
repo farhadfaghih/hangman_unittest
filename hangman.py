@@ -19,26 +19,17 @@ class Bank:
         self.letters_guessed_counter = 0
         self.not_solved = True
         self.letters_already_guessed = []
-        self.api_response_status = False
         self.response = None
-
-    def pick_topic(self) -> None:
-        self.current_topic = choice(self.topic_names)
 
     def get_word(self) -> None:
         try:
             self.response = requests.get(f"{self.api}", headers={'X-Api-Key': f"{self.api_key}"}, params={type: 'noun'})
             if self.response.status_code == 200:
                 word = json.loads(self.response.text)
-                self.api_response_status = True
                 self.current_word = word['word'].lower()
         except requests.exceptions.ConnectionError:
-            pass
-
-    def pick_word(self) -> None:
-        self.current_word = choice(self.topics[self.current_topic])
-
-    def display_maker(self) -> None:
+            self.current_topic = choice(self.topic_names)
+            self.current_word = choice(self.topics[self.current_topic])
         for i in range(len(self.current_word)):
             self.current_word_display.append('_')
 
@@ -72,12 +63,12 @@ class Processes:
     @staticmethod
     def check_answer_update_lives(bank: Bank, player: Player) -> str:
         if player.answer in bank.letters_already_guessed:
-            return "repeated"
+            return '\nLetter already guessed.'
 
         elif player.answer not in bank.current_word:
             player.lives -= 1
             bank.letters_already_guessed.append(player.answer)
-            return "False"
+            return '\nNope!'
 
         else:
             for i in range(len(bank.current_word)):
@@ -85,7 +76,7 @@ class Processes:
                     bank.current_word_display[i] = player.answer
                     bank.letters_guessed_counter += 1
                     bank.letters_already_guessed.append(player.answer)
-            return "True"
+            return '\nNice!'
 
 
 class Main:
@@ -94,39 +85,26 @@ class Main:
         player1 = Player()
         game = Processes()
         word_bank.get_word()
-        if not word_bank.api_response_status:
-            word_bank.pick_topic()
-            print(f'Topic: {word_bank.current_topic}')
-            word_bank.pick_word()
+        print(f'Topic: {word_bank.current_topic}' if word_bank.current_topic else "Topic: random word from API")
         print(f'Word is {len(word_bank.current_word)} letters long.')
-        word_bank.display_maker()
         print(word_bank.current_word_display)
         player1.lives = len(word_bank.current_word) * 3
-
         while word_bank.not_solved and player1.lives > 0:
             while player1.guess_validation_incomplete:
                 player1.guess(input('Guess a letter: '))
                 if game.validate_user_input(player1) is None:
                     print('\nPlease guess a single alphabet')
-            info = game.check_answer_update_lives(word_bank, player1)
-            if info == "repeated":
-                print('\nLetter already guessed.')
-            elif info == "False":
-                print('\nNope!')
-            elif info == "True":
-                print('\nNice!')
+            print(game.check_answer_update_lives(word_bank, player1))
             print('Lives remaining: {}'.format(player1.lives))
             print(word_bank.current_word_display)
             player1.guess_validation_incomplete = True
             word_bank.check_solve()
 
-        if not word_bank.not_solved:
-            print('\nYou win!')
-
-        else:
+        if word_bank.not_solved:
             print('\nYou lose')
             print('Word was {}'.format(word_bank.current_word))
-
+        else:
+            print('\nYou win!')
         replay = input('Press any key to play again, x to quit: ')
         print('\n')
         if replay.upper() == 'X':
