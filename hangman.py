@@ -63,7 +63,6 @@ class Processes:
     @staticmethod
     def validate_user_input(player: Player):
         expression = re.match('(?i)[a-z]', player.answer)
-        player.answer = player.answer
         if expression is None or len(player.answer) > 1:
             return None
         else:
@@ -89,7 +88,7 @@ class Processes:
             return "True"
 
 
-if __name__ == "__main__":
+class Main:
     while True:
         word_bank = Bank()
         player1 = Player()
@@ -132,3 +131,7 @@ if __name__ == "__main__":
         print('\n')
         if replay.upper() == 'X':
             break
+
+
+if __name__ == "__main__":
+    play = Main()
